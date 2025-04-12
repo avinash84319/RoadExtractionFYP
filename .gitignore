@@ -1,3 +1,7 @@
 1/
 logs/
 *.h5
+*.png
+*.index
+my_checkpoint*
+checkpoint*
