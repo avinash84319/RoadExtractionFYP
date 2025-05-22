@@ -1,42 +1,31 @@
-\documentclass[11pt]{article}
+\documentclass[conference]{IEEEtran}
 
-% Use two-column layout
-\usepackage[a4paper,margin=1in]{geometry}
-\usepackage{multicol}
-\usepackage{times}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{hyperref}
-\usepackage{authblk}
+\usepackage{cite}
+\usepackage{times}
 
-% Title and Authors
-\title{\textbf{A Dual-Path Neural Network with Canny Edge Integration for Road Extraction
-}}
-\author[1]{Avinash Reddy C}
-\author[2]{Devaram Likith Kumar Reddy}
-\author[3]{Nihal Ravindra}
-\author[4]{Dixith S Naik}
-\affil[5]{Department of Information Science and Engineering}
-\affil[6]{Jss Science And Technology University}
-\date{}
+\title{A Dual-Path Neural Network with Canny Edge Integration for Road Extraction}
+
+\author{
+    Avinash Reddy C$^{1}$, Devaram Likith Kumar Reddy$^{2}$, Nihal Ravindra$^{3}$, Dixith S Naik$^{4}$\\
+    Department of Information Science and Engineering,\\
+    JSS Science and Technology University, India\\
+}
+
 
 \begin{document}
 
-% Title
 \maketitle
 
-% Abstract (single column)
 \begin{abstract}
 Road extraction from satellite and aerial imagery plays a crucial role in autonomous navigation, urban planning, and geographic information systems (GIS). This paper presents a novel approach to road extraction by integrating Canny edge detection with a Dual-Path Neural Network (DPNN). The proposed model leverages a unique combination of feature extraction and edge detection mechanisms, improving the accuracy and efficiency of road segmentation in complex environments. The architecture of the model is based on a modified U-Net structure, which is enhanced by incorporating edge information through Canny edge detection to refine the segmentation boundaries. The DPNN employs a two-path structure, one dedicated to learning high-level features and the other focusing on edge-enhanced features. This dual-path architecture enables the model to capture both detailed textures and sharp boundaries of roads. The model is trained using Dice loss, which helps improve the accuracy of pixel-wise segmentation, with optimization through the Adam optimizer, ensuring efficient convergence during training. To validate the proposed method, experiments were conducted on benchmark road extraction datasets, and the results demonstrate better performance in terms of Intersection over Union (IoU) compared to existing methods.
 \end{abstract}
 
-% Keywords
-\vspace{0.5em}
-\noindent\textbf{Keywords:} Road Extraction, Dual-Path Neural Network, Canny Edge Detection, U-Net, Deep Learning, Image Segmentation
-
-
-% Begin two-column content
-\begin{multicols}{2}
+\begin{IEEEkeywords}
+Road Extraction, Dual-Path Neural Network, Canny Edge Detection, U-Net, Deep Learning, Image Segmentation
+\end{IEEEkeywords}
 
 \section{Introduction}
 Road extraction from satellite imagery is a fundamental task with critical applications in urban planning, disaster response, autonomous navigation, and transportation infrastructure management. The task remains challenging due to factors such as occlusions from vegetation and shadows, intra-class variability in road textures and widths, and visual clutter in dense urban environments. Conventional image processing methods, such as the Canny edge detector, have demonstrated effectiveness in capturing structural features but often fail to preserve road continuity in complex scenes. On the other hand, deep learning techniques, particularly convolutional neural networks (CNNs), provide strong semantic understanding but may lack precision in delineating fine-grained details and are susceptible to domain shifts.
@@ -45,9 +34,7 @@ Recent developments in hybrid models have addressed these limitations by combini
 
 State-of-the-art models, such as DP-Net (2023) and Multi-Path-Cascade (2024), incorporate geometric priors and region-aware modules to strengthen road connectivity and segmentation accuracy. Additionally, attention-guided UNet variants have reported high recall and Intersection over Union (IoU) scores, indicating their robustness across varied remote sensing scenarios. These findings highlight the efficacy of hybrid frameworks in balancing edge preservation with semantic accuracy.
 
-This paper introduces a Dual-Path Neural Network that combines Canny edge detection with a CNN-based segmentation pipeline. The proposed model integrates the complementary strengths of both paradigms, aiming to improve road extraction accuracy while maintaining interpretability. The design incorporates enhanced edge detection algorithms and an optimized neural architecture, contributing to the advancement of hybrid methodologies for precise and reliable road network extraction from high-resolution satellite imagery.
-
-% You can continue writing normally — it will stay in two-column format
+This paper introduces a Dual-Path Neural Network that combines Canny edge detection with a CNN-based segmentation pipeline. The proposed model integrates the complementary strengths of both paradigms, aiming to improve road extraction accuracy while maintaining interpretability. The design incorporates enhanced edge detection algorithms and an optimized neural architecture, contributing to the advancement of hybrid methodologies for precise and reliable road network extraction from high-resolution satellite imagery.
 
 \section{Related Work}
 Road extraction from high-resolution satellite imagery has seen remarkable progress with the rise of deep learning, particularly Convolutional Neural Networks (CNNs). Early CNN-based methods like U-Net demonstrated strong performance by enabling end-to-end pixel-wise segmentation. Variants of these architectures were further explored to tackle challenges such as road discontinuities and occlusions caused by buildings and trees.
@@ -63,29 +50,126 @@ More recent efforts have turned toward modular and scalable architectures. Feng 
 In summary, the field has evolved from conventional CNN-based segmentation to more robust and flexible architectures incorporating attention, edge awareness, and multitask strategies. These advancements have significantly improved the accuracy, continuity, and robustness of road extraction methods in diverse and complex remote sensing scenarios.
 
 \section{Methodology}
-...
 
-\section{Experiments & Results}
-...
+Our proposed pipeline includes a structured flow comprising preprocessing, a dual-path model architecture, a tailored loss and optimization strategy, training setup, and postprocessing techniques.
+
+\subsection{Preprocessing}
+
+Satellite images often suffer from noise, blur, or poor contrast. To standardize the input data:
+
+\begin{itemize}
+    \item Images are resized to a fixed resolution of $256 \times 256$.
+    \item Normalization is applied to scale pixel values between 0 and 1.
+    \item Each image is converted to grayscale, and Sobel filtering is applied for edge detection.
+\end{itemize}
+
+\subsection{Model Architecture: Dual-Path Design}
+
+A dual-path architecture is proposed with U-Net in one path and a Canny edge detection-inspired path in the other.
+
+\begin{itemize}
+    \item \textbf{Overall Structure:} The architecture includes an encoder path, decoder path, a learnable edge detection branch, and a merging mechanism.
+    
+    \item \textbf{Encoder:} The encoder contains four convolutional blocks that downsample the input using Conv2D, Batch Normalization, and LeakyReLU. It produces feature maps at resolutions of:
+    \begin{itemize}
+        \item $128 \times 128 \times 32$
+        \item $64 \times 64 \times 64$
+        \item $32 \times 32 \times 128$
+        \item $16 \times 16 \times 256$
+    \end{itemize}
+    
+    \item \textbf{Decoder:} The decoder reconstructs the segmentation map via Conv2DTranspose layers with ReLU activation and Batch Normalization. Skip connections from the encoder preserve spatial details while progressively upsampling back to $128 \times 128 \times 64$.
+    
+    \item \textbf{Learnable Edge Detection Branch:} A custom \textit{LearnableEdgeDetector} layer extracts edge features, resized to $128 \times 128 \times 1$. A Conv2D layer then maps these to a 32-channel edge feature map.
+    
+    \item \textbf{Merging Outputs:} The decoder output and edge features are concatenated to form a $128 \times 128 \times 128$ tensor. A final Conv2DTranspose layer upscales this to $256 \times 256 \times 1$, generating a binary segmentation mask via sigmoid activation.
+\end{itemize}
+\begin{figure*}[!ht]
+  \centering
+  \includegraphics[width=\textwidth]{arch.png}
+  \caption{An overview of the DPNN architecture showing the dual-path encoder and fusion module.}
+  \label{fig:dpnn_architecture}
+\end{figure*}
+\subsection{Loss Function and Optimization}
+
+\begin{itemize}
+    \item Dice Coefficient Loss is used to address class imbalance and maximize overlap between predicted and ground truth road regions.
+    \item Adam optimizer with a learning rate of 0.0001 is employed.
+    \item EarlyStopping halts training if validation loss does not improve for 3 consecutive epochs.
+    \item ModelCheckpoint saves the best model based on validation loss.
+    \item ReduceLROnPlateau decreases the learning rate by a factor of 0.2 if validation loss stagnates for 2 epochs.
+\end{itemize}
+
+\subsection{Model Training}
+
+\begin{itemize}
+    \item The model is trained for 10 epochs with a batch size of 2. Custom data generators feed preprocessed images and masks in memory-efficient batches.
+    \item A validation set monitors model generalization and prevents overfitting.
+    \item Evaluation metrics include Precision, Recall, Intersection over Union (IoU), F1 Score, and Accuracy.
+\end{itemize}
+
+\subsection{Postprocessing and Prediction}
+
+\begin{itemize}
+    \item Test images are resized to $256 \times 256$ and normalized to [0, 1] scale.
+    \item The model outputs a probability map indicating the likelihood of each pixel being a road.
+    \item A threshold of 0.5 is applied to generate a binary mask.
+    \item Binary masks are converted to RGB format with road pixels in white and background in black.
+    \item A custom visualization function displays the input image, ground truth, predicted mask, and probability map.
+\end{itemize}
+
+\section{Working Principle}
+
+The model performs semantic segmentation to extract road features from satellite or aerial imagery. The working principle is as follows:
+
+\begin{itemize}
+    \item \textbf{Input Preprocessing:} Standardizes the input using resizing and normalization.
+    \item \textbf{Feature Extraction:} The encoder captures hierarchical features through convolution and downsampling.
+    \item \textbf{Edge Awareness:} A learnable edge detection branch highlights boundary information, improving the detection of thin or broken road segments.
+    \item \textbf{Reconstruction:} The decoder upsamples and refines features, recovering spatial detail using skip connections.
+    \item \textbf{Fusion of Features:} Decoder and edge branch outputs are merged to combine semantic and boundary information.
+    \item \textbf{Prediction:} A sigmoid-activated final layer produces a probability map, post-processed into a binary mask.
+\end{itemize}
+
+\section{Implementation}
+
+The model was implemented using Python with TensorFlow and Keras. The pipeline included data preprocessing, model design, training, and visualization.
+
+\begin{itemize}
+    \item \textbf{Tools:} TensorFlow 2.x, Keras API, OpenCV for image processing, Matplotlib and Pandas for visualization and analysis.
+    \item \textbf{Dataset Handling:} Organized into train, validation, and test directories. Custom data generators are used for preprocessing and loading.
+    \item \textbf{Training Setup:} Trained for 10 epochs with a batch size of 2. Callbacks include EarlyStopping and ModelCheckpoint.
+    \item \textbf{Optimization and Loss:} The model uses Adam optimizer with a learning rate of 0.0001 and Dice Coefficient Loss.
+    \item \textbf{Edge-Aware Architecture:} A custom \textit{LearnableEdgeDetector} is integrated with the U-Net backbone for boundary-aware segmentation.
+    \item \textbf{Evaluation and Visualization:} Predictions are converted to binary RGB masks and visually compared to ground truth using a custom plotting function.
+\end{itemize}
+
+
+
+
+
+
+\section{Experiments \& Results}
+% Add your experiments and results here
+
 
 \section{Conclusion}
 In this study, we introduced a Dual-Path Neural Network that integrates classical Canny edge detection with a CNN-based semantic segmentation framework for road extraction from satellite imagery. The hybrid design effectively leverages both fine-grained edge information and global semantic context, resulting in improved segmentation accuracy and road connectivity.
 
 Extensive experiments conducted on the Massachusetts Roads Dataset demonstrate that the proposed model outperforms existing state-of-the-art methods. Notably, our approach achieved a higher Intersection over Union (IoU) score compared to other referenced models, validating the effectiveness of combining classical techniques with modern deep learning strategies.
 
-The results confirm that hybrid architectures offer a promising direction for addressing challenges such as occlusions, inconsistent road textures, and domain variability in remote sensing. Future work will explore real-time implementations and applications to other geospatial mapping tasks.
+The results confirm that hybrid architectures offer a promising direction for addressing challenges such as occlusions, inconsistent road textures, and domain variability in remote sensing. Future work will explore real-time implementations and applications to other geospatial mapping tasks.
 
-\end{multicols}
 
-\bibliographystyle{plain}
+
 
 \begin{thebibliography}{99}
 
 \bibitem{sarvamangala2021}
-D. R. Sarvamangala and R. V. Kulkarni, “Convolutional Neural Networks in Medical Image Understanding: A Survey,” *Evolutionary Intelligence*, 2021.
+D. R. Sarvamangala and R. V. Kulkarni, “Convolutional Neural Networks in Medical Image Understanding: A Survey,” Evolutionary Intelligence, 2021.
 
 \bibitem{liu2024roadct}
-W. Liu, S. Gao, C. Zhang, and B. Yang, “RoadCT: A Hybrid CNN-Transformer Network for Road Extraction From Satellite Imagery,” *IEEE Geoscience and Remote Sensing Letters*, vol. 21, 2024.
+W. Liu, S. Gao, C. Zhang, and B. Yang, “RoadCT: A Hybrid CNN-Transformer Network for Road Extraction From Satellite Imagery,” IEEE Geoscience and Remote Sensing Letters, vol. 21, 2024.
 
 \bibitem{chen2024dpenet}
 Z. Chen, Y. Luo, J. Wang, J. Li, C. Wang, and D. Li, “DPENet: Dual-path extraction network based on CNN and transformer for accurate building and road extraction,” 2024.
@@ -112,7 +196,7 @@ W. Feng, F. Guan, C. Sun, and W. Xu, “Road-SAM: Adapting the segment anything 
 L. Guo, X. Bai, H. Huo, Z. Wu, W. Zhang, and C. Wang, “High-resolution road information extraction based on an improved dual-path neural network,” 2024.
 
 \bibitem{ji2024renet}
-S. Ji, K. Jiang, P. Wang, and M. He, “RE-Net: Road extraction from remote sensing images with deep learning and geometric priors,” Northwestern Polytechnical University, Xi’an, China; Shaanxi Qianshan Avonics Co. Ltd (AVIC), Xi’an, China; Chinese Flight Test Establishment, Xian, China, 2024.
+S. Ji, K. Jiang, P. Wang, and M. He, “RE-Net: Road extraction from remote sensing images with deep learning and geometric priors,” Northwestern Polytechnical University, Xi’an, China; Shaanxi Qianshan Avonics Co. Ltd (AVIC), Xi’an, China; Chinese Flight Test Establishment, Xi’an, China, 2024.
 
 \bibitem{li2024rbfnet}
 W. Li, T. Lan, S. Fan, and Y. Jiang, “RBFNet: A region-aware and boundary-enhanced fusion network for road extraction from high-resolution remote sensing data,” 2024.
@@ -127,16 +211,16 @@ Z. Chen, Y. Luo, J. Wang, J. Li, and C. Wang, “DPENet: Dual-path extraction ne
 C. Wang and J. Lu, “BMDCNet: A Satellite Imagery Road Extraction Algorithm based on Multi-level Road Feature,” 2020.
 
 \bibitem{akhtarmanesh2024attention}
-A. Akhtarmanesh, D. Abbasi-Moghadam, A. Tariq, A. Sharifi, and L. Lu, “Road Extraction From Satellite Images Using Attention-Assisted UNet,” *IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing*, vol. 17, 2024.
+A. Akhtarmanesh, D. Abbasi-Moghadam, A. Tariq, A. Sharifi, and L. Lu, “Road Extraction From Satellite Images Using Attention-Assisted UNet,” IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing, vol. 17, 2024.
 
 \bibitem{guo2024crossscale}
-H. Guo, X. Su, B. Du, C. Wu, and L. Zhang, “Building-Road Collaborative Extraction From Remote Sensing Images via Cross-Task and Cross-Scale Interaction,” *IEEE Transactions on Geoscience and Remote Sensing*, 2024.
+H. Guo, X. Su, B. Du, C. Wu, and L. Zhang, “Building-Road Collaborative Extraction From Remote Sensing Images via Cross-Task and Cross-Scale Interaction,” IEEE Transactions on Geoscience and Remote Sensing, 2024.
 
 \bibitem{patil2024multipath}
-D. Patil and S. Jadhav, “Road Network Extraction Using Multi-path Cascade Convolution Neural Network from Remote Sensing Images,” *Journal of the Indian Society of Remote Sensing*, 2024.
+D. Patil and S. Jadhav, “Road Network Extraction Using Multi-path Cascade Convolution Neural Network from Remote Sensing Images,” Journal of the Indian Society of Remote Sensing, 2024.
 
 \bibitem{meng2024axial}
-Q. Meng, D. Zhou, X. Zhang, Z. Yang, and Z. Chen, “Road Extraction From Remote Sensing Images via Channel Attention and Multilayer Axial Transformer,” *IEEE Geoscience and Remote Sensing Letters*, 2024.
+Q. Meng, D. Zhou, X. Zhang, Z. Yang, and Z. Chen, “Road Extraction From Remote Sensing Images via Channel Attention and Multilayer Axial Transformer,” IEEE Geoscience and Remote Sensing Letters, 2024.
 
 \end{thebibliography}
 
